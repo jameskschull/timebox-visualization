@@ -1,5 +1,19 @@
+html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; background-color: green;  } 
+
+
 .App {
+  display: flex;
+  /* align-self: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; */
+  margin: auto;
   text-align: center;
+  background-color: black;
+  color: white;
+  height: 100%;
+  width: 100%;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .App-logo {
@@ -14,13 +28,15 @@
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+  background-color: black;
   display: flex;
+  flex:1;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  font-family: 'Courier New', Courier, monospace;
   font-size: calc(10px + 2vmin);
+  font-weight: bold;
   color: white;
 }
 
