@@ -1,4 +1,4 @@
-html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; background-color: green;  } 
+html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; background-color: white;  } 
 
 
 .App {
@@ -9,7 +9,7 @@ html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; background
   justify-content: center; */
   margin: auto;
   text-align: center;
-  background-color: black;
+  background-color: white;
   color: white;
   height: 100%;
   width: 100%;
@@ -28,16 +28,17 @@ html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; background
 }
 
 .App-header {
-  background-color: black;
+  background-color: white;
   display: flex;
   flex:1;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  padding-top: 50px;
   font-family: 'Courier New', Courier, monospace;
   font-size: calc(10px + 2vmin);
   font-weight: bold;
-  color: white;
+  color: black;
 }
 
 .App-link {

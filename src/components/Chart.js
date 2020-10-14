@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 
+
 function Chart() {
   const [data, setData] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -15,24 +16,24 @@ function Chart() {
   useEffect(() => {
     if (!dataLoaded) {
       console.log("Loading data.");
-      d3.csv('/data/top_100.csv', d3.autoType)
+      d3.csv('/data/top_100.csv')
       .then(function(csvData) {
-          var processedData = {};
-          csvData.forEach((row) => {
-            var name = row.person;
-            if (!(name in processedData)) {
-              processedData[name] = [];
-            } 
-            processedData[name].push({
-              'year_month':row.year_month,
-              'screen_time_seconds':row.screen_time_seconds,
-            });
+          console.log("Processing data.");
+          const uniqueNames = [...new Set(csvData.map(d => d.person))];
+          const dates = [...new Set(csvData.map(d => d.year_month))];
+          var processedData = [];
+          uniqueNames.forEach(name => {
+            var values = csvData.filter((d) => {return d.person==name}).map(d => d.screen_time_seconds/3600);
+            processedData.push({name:name, values:values});
           });
-          console.log("Processed data: ", processedData["adam schiff"]);
-          setData(processedData["adam schiff"]);
+          setData({
+            y: "# hours of screen time",
+            series: processedData,
+            dates: dates.map(d3.utcParse("%Y-%m")),
+          });
           setDataLoaded(true);
-      })
-      .catch(function(error){
+        })
+        .catch(function(error){
         // handle error   
       })
     }
@@ -41,79 +42,56 @@ function Chart() {
   /* Create D3 visualization */
   useEffect(() => {
     if (dataLoaded) {
-
-      d3.select('#visualization')
-      .select('svg')
-      .remove();
-      d3.select('#visualization')
-            .select('.tooltip')
-            .remove();
-
-      console.log("Creating visualization.");
-      const margin = {top:50, right:50, bottom:50, left:50};
-      const yMaxValue = d3.max(data, d => d.screen_time_seconds);
-      const yMinValue = d3.min(data, d => d.screen_time_seconds);
-      const xMaxValue = d3.max(data, d => d.year_month);
-      const xMinValue = d3.min(data, d => d.year_month);
+      console.log("Data:",data);
+      const svg = d3.select(d3Container.current);
       
-      const svg = d3.select(d3Container.current)
-                  .append('svg')
-                  .attr('width', width+margin.left+margin.right)
-                  .attr('height', height+margin.top+margin.bottom)
-                  .append('g')
-                  .attr('transform', `translate(${margin.left},${margin.top})`);
+      const margin = ({top: 20, right: 20, bottom: 30, left: 30})
 
-      const xScale = d3
-          .scaleUtc()
-          .domain(d3.extent(data, d => d.year_month))
-          .range([xMinValue, xMaxValue]);
-      const yScale = d3
-          .scaleLinear()
-          .range([height, 0])
-          .domain([yMinValue, yMaxValue]);
-      const line = d3
-          .line()
-          .x(d => xScale(d.label))
-          .y(d => yScale(d.value))    
+      let x = d3.scaleUtc()
+        .domain(d3.extent(data.dates))
+        .range([margin.left, width - margin.right])
+      let xAxis = g => g
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0));
 
-      svg.append('g')
-      .attr('class', 'grid')
-      .attr('transform', `translate(0,${height})`)
-      .call(
-        d3.axisBottom(xScale)
-        .tickSize(-height)
-        .tickFormat('')
-      );
+      let y = d3.scaleLinear()
+        .domain([0, d3.max(data.series, d => d3.max(d.values))]).nice()
+        .range([height - margin.bottom, margin.top])
 
-      svg
-      .append('g')
-      .attr('class', 'grid')
-      .call(
-          d3.axisLeft(yScale)
-          .tickSize(-width)
-          .tickFormat(''),
-      );
-
-      svg
-      .append('g')
-      .attr('class', 'x-axis')
-      .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom().scale(xScale).tickSize(15));
-
-      svg
-        .append('g')
-        .attr('class', 'y-axis')
-        .call(d3.axisLeft(yScale));
-      svg
-        .append('path')
-        .datum(data)
-        .attr('fill', 'none')
-        .attr('stroke', 'white')
-        .attr('stroke-width', 4)
-        .attr('class', 'line') 
-        .attr('d', line);
-
+      let yAxis = g => g
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 3)
+        .attr("text-anchor", "start")
+        .attr("font-weight", "bold")
+        .text(data.y))
       
+      let line = d3.line()
+        .defined(d => !isNaN(d))
+        .x((d, i) => x(data.dates[i]))
+        .y(d => y(d))
+
+      svg.attr("viewBox", [0, 0, width, height])
+        .style("overflow", "visible");
+      svg.append("g")
+        .call(xAxis);
+      svg.append("g")
+        .call(yAxis);
+
+      // This is used by hover: it groups lines and will be useful for timeboxing
+      const path = svg.append("g")
+          .attr("fill", "none")
+          .attr("stroke", "steelblue")
+          .attr("stroke-width", 1.5)
+          .attr("stroke-linejoin", "round")
+          .attr("stroke-linecap", "round")
+          .selectAll("path")
+          .data(data.series)
+          .join("path")
+          .style("mix-blend-mode", "multiply")
+          .attr("d", d => line(d.values));
 
     }
   }, [data, dataLoaded]);
