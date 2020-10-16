@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { brush, set } from 'd3';
 
+// ROSE IN THE HOUSE
+
 function Chart() {
   const [data, setData] = useState(null);
   const [pathState, setPathState] = useState(null);
