@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import { brush, set } from 'd3';
 
-// ROSE IN THE HOUSE
 
 function Chart() {
   const [data, setData] = useState(null);
@@ -67,7 +66,7 @@ function Chart() {
           }
         }
         return true;
-      }).attr("stroke", 'red').attr("opacity", 1);;
+      }).attr("stroke", 'red').attr("opacity", 1);
     }
   }, [boxCoordinates]);
 
@@ -82,6 +81,7 @@ function Chart() {
       let x = d3.scaleUtc()
         .domain(d3.extent(data.dates))
         .range([margin.left, width - margin.right])
+        
       let xAxis = g => g
         .attr("transform", `translate(0,${height - margin.bottom})`)
         .call(d3.axisBottom(x).ticks(width / 80).tickSizeOuter(0));
