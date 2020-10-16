@@ -3,7 +3,20 @@ import * as d3 from 'd3';
 import { brush, set } from 'd3';
 
 // ROSE IN THE HOUSE
+/* Helper functions */
+function updateCoordinates(id, selection, boxCoordinates, setBoxCoordinates, x, y) {
+  let targetX1 = d3.timeMonth.floor(x.invert(selection[0][0]));
+  let targetY1 = y.invert(selection[0][1]);
+  let targetX2 = d3.timeMonth.floor(x.invert(selection[1][0]));
+  let targetY2 = y.invert(selection[1][1]);
+  let xBounds = [targetX1, targetX2];
+  let yBounds = [targetY1, targetY2];
 
+  setBoxCoordinates(boxCoordinates => ({...boxCoordinates, 
+    [id]:[xBounds, yBounds]}));
+}
+
+/* Visualization component */
 function Chart() {
   const [data, setData] = useState(null);
   const [pathState, setPathState] = useState(null);
@@ -44,11 +57,10 @@ function Chart() {
 
   // Filter
   useEffect(()=> {
-    console.log("Updated box coordinates: ", boxCoordinates);
     if (boxCoordinates==={} || !pathState) {
       return;
     } else {
-      pathState.attr("stroke", "steelblue").attr("opacity", 0.2);
+      pathState.attr("stroke", "steelblue").attr("opacity", 0.1);
       pathState.filter((d) => {
 
         // Filter for each timebox
@@ -67,7 +79,7 @@ function Chart() {
           }
         }
         return true;
-      }).attr("stroke", 'red').attr("opacity", 1);;
+      }).attr("stroke", 'salmon').attr("opacity", 1);;
     }
   }, [boxCoordinates]);
 
@@ -137,6 +149,7 @@ function Chart() {
 
         brushes.push({id: brushes.length, brush: brush});
 
+
         function brushstart(event) {
         };
 
@@ -145,14 +158,9 @@ function Chart() {
           // console.log("Brushed");
           var lastBrushID = brushes[brushes.length - 1].id;
           var currentBrushID = parseInt(this.id.split('-')[1]);
-          // console.log("Last brush ID: ", lastBrushID);
-          // if (lastBrushID === currentBrushID) {
-          //   console.log("Brushing a new brush");
-          // } else {
-          //   console.log("Moving an existing brush");
-          // }
-          // console.log("Brushing, final extent: ", event.selection)
-          // console.log("Brushes: ", brushes)
+          if (lastBrushID != currentBrushID) {
+            updateCoordinates(currentBrushID, event.selection, boxCoordinates, setBoxCoordinates, x, y);
+          }
         }
 
         function brushend(event) {
@@ -163,14 +171,7 @@ function Chart() {
 
           // If it does, that means we need another one
           if (selection && selection[0] !== selection[1]) {
-            let targetX1 = d3.timeMonth.floor(x.invert(event.selection[0][0]));
-            let targetY1 = y.invert(event.selection[0][1]);
-            let targetX2 = d3.timeMonth.floor(x.invert(event.selection[1][0]));
-            let targetY2 = y.invert(event.selection[1][1]);
-            let xBounds = [targetX1, targetX2];
-            let yBounds = [targetY1, targetY2];
-            setBoxCoordinates(boxCoordinates => ({...boxCoordinates, 
-              [lastBrushID]:[xBounds, yBounds]}));
+            updateCoordinates(lastBrushID, event.selection, boxCoordinates, setBoxCoordinates, x, y);
             newBrush();
           } 
           // Always draw brushes
@@ -238,6 +239,7 @@ function Chart() {
 
       // Store path so we can access it in our filter function
       setPathState(path);
+
     }
   }, [data, dataLoaded]);
 
