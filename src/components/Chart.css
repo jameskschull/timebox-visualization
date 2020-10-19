@@ -1,0 +1,8 @@
+rect.selection {
+    fill: salmon;
+    fill-opacity: 0.3;
+}
+.brush[class="brush selected-brush"] rect.selection {
+    fill: salmon;
+    fill-opacity: 0.7;
+}
